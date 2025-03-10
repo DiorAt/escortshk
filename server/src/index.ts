@@ -13,6 +13,30 @@ const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT || 5000;
 
+// Проверка подключения к базе данных
+async function checkDatabaseConnection() {
+  try {
+    await prisma.$connect();
+    console.log('✅ Успешное подключение к базе данных');
+    
+    // Проверяем наличие админа
+    const adminCount = await prisma.admin.count();
+    if (adminCount === 0) {
+      // Создаем дефолтного админа если нет ни одного
+      const defaultAdmin = await prisma.admin.create({
+        data: {
+          username: 'admin',
+          password: '$2a$10$K.0HwpsoPDGaB/atFBmmXOGTw4ceeg33.WXgRWQP4hRj0IXIWEkyG', // пароль: admin123
+        },
+      });
+      console.log('✅ Создан дефолтный администратор (логин: admin, пароль: admin123)');
+    }
+  } catch (error) {
+    console.error('❌ Ошибка подключения к базе данных:', error);
+    process.exit(1);
+  }
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -39,6 +63,14 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ message: 'Что-то пошло не так!' });
 });
 
-app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
+// Запускаем сервер только после проверки подключения к БД
+checkDatabaseConnection().then(() => {
+  app.listen(port, () => {
+    console.log(`✅ Сервер запущен на порту ${port}`);
+    console.log(`📝 Админ-панель доступна по адресу: http://localhost:${port}/admin`);
+    console.log(`🔑 API доступно по адресу: http://localhost:${port}/api`);
+  });
+}).catch((error) => {
+  console.error('❌ Ошибка запуска сервера:', error);
+  process.exit(1);
 }); 
