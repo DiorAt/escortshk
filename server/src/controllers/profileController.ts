@@ -17,8 +17,15 @@ export const getProfiles = async (req: Request, res: Response) => {
       isVerified,
     } = req.query;
 
+    // Проверяем наличие токена администратора в заголовках
+    const isAdminRequest = req.headers.authorization?.startsWith('Bearer ');
+
+    console.log('Request path:', req.path);
+    console.log('Is admin request:', isAdminRequest);
+    console.log('Authorization header:', req.headers.authorization);
+
     const filters: any = {
-      isActive: true,
+      isActive: isAdminRequest ? undefined : true,
       cityId: cityId ? Number(cityId) : undefined,
     };
 
@@ -38,17 +45,33 @@ export const getProfiles = async (req: Request, res: Response) => {
       if (max) filters.price1Hour = { ...filters.price1Hour, lte: Number(max) };
     }
 
+    // Удаляем undefined значения из фильтров
+    Object.keys(filters).forEach(key => {
+      if (filters[key] === undefined) {
+        delete filters[key];
+      }
+    });
+
+    console.log('Applied filters:', filters);
+
     const profiles = await prisma.profile.findMany({
       where: filters,
       include: {
         city: true,
       },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
 
+    console.log(`Found ${profiles.length} profiles`);
     res.json(profiles);
   } catch (error) {
     console.error('Error fetching profiles:', error);
-    res.status(500).json({ error: 'Failed to fetch profiles' });
+    res.status(500).json({ 
+      error: 'Failed to fetch profiles',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 

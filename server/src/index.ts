@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import * as profileController from './controllers/profileController';
 import * as cityController from './controllers/cityController';
 import * as authController from './controllers/authController';
+import * as settingsController from './controllers/settingsController';
 import { authMiddleware } from './middleware/auth';
 
 dotenv.config();
@@ -31,6 +32,13 @@ async function checkDatabaseConnection() {
       });
       console.log('✅ Создан дефолтный администратор (логин: admin, пароль: admin123)');
     }
+
+    // Проверяем наличие настроек
+    const settingsCount = await prisma.settings.count();
+    if (settingsCount === 0) {
+      await prisma.settings.create({ data: {} }); // Создаем настройки по умолчанию
+      console.log('✅ Созданы настройки по умолчанию');
+    }
   } catch (error) {
     console.error('❌ Ошибка подключения к базе данных:', error);
     process.exit(1);
@@ -44,18 +52,22 @@ app.use(express.json());
 app.get('/api/profiles', profileController.getProfiles);
 app.get('/api/profiles/:id', profileController.getProfileById);
 app.get('/api/cities', cityController.getCities);
+app.get('/api/settings/public', settingsController.getPublicSettings);
 
 // Маршруты администратора
 app.post('/api/auth/login', authController.login);
 
 // Защищенные маршруты (требуют аутентификации)
 app.use('/api/admin', authMiddleware);
+app.get('/api/admin/profiles', profileController.getProfiles);
 app.post('/api/admin/profiles', profileController.createProfile);
 app.put('/api/admin/profiles/:id', profileController.updateProfile);
 app.delete('/api/admin/profiles/:id', profileController.deleteProfile);
 app.post('/api/admin/cities', cityController.createCity);
 app.put('/api/admin/cities/:id', cityController.updateCity);
 app.delete('/api/admin/cities/:id', cityController.deleteCity);
+app.get('/api/admin/settings', settingsController.getSettings);
+app.put('/api/admin/settings', settingsController.updateSettings);
 
 // Обработка ошибок
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

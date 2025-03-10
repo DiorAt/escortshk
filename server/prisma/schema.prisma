@@ -50,6 +50,23 @@ model Admin {
   createdAt DateTime @default(now())
 }
 
+model Settings {
+  id                  Int      @id @default(autoincrement())
+  telegramUsername    String   @default("your_admin_username")
+  notificationsEnabled Boolean  @default(true)
+  autoModeration      Boolean  @default(false)
+  defaultCity         String?
+  maintenanceMode     Boolean  @default(false)
+  watermarkEnabled    Boolean  @default(true)
+  watermarkText       String   @default("@your_watermark")
+  minPhotoCount       Int      @default(3)
+  maxPhotoCount       Int      @default(10)
+  defaultPriceHour    Int      @default(5000)
+  defaultPriceTwoHours Int     @default(10000)
+  defaultPriceNight   Int      @default(30000)
+  updatedAt          DateTime @updatedAt
+}
+
 model Language {
   id   Int    @id @default(autoincrement())
   code String @unique
