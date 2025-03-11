@@ -32,8 +32,11 @@ model Profile {
   price1Hour    Int
   price2Hours   Int
   priceNight    Int
+  priceExpress  Int      @default(0)
   workingHours  String?
   isVerified    Boolean  @default(false)
+  hasVideo      Boolean  @default(false)
+  hasReviews    Boolean  @default(false)
   services      String[]
   city          City     @relation(fields: [cityId], references: [id])
   cityId        Int
@@ -41,6 +44,28 @@ model Profile {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   isActive      Boolean  @default(true)
+  
+  // Appearance
+  nationality   String?
+  hairColor     String?
+  bikiniZone    String?
+  gender        String   @default("female")
+  orientation   String   @default("hetero")
+  
+  // Location
+  inCall        Boolean  @default(true)
+  outCall       Boolean  @default(false)
+  
+  // Additional filters
+  isNonSmoking  Boolean  @default(false)
+  isNew         Boolean  @default(true)
+  isWaitingCall Boolean  @default(false)
+  is24Hours     Boolean  @default(false)
+  
+  // Neighbors
+  isAlone       Boolean  @default(true)
+  withFriend    Boolean  @default(false)
+  withFriends   Boolean  @default(false)
 }
 
 model Admin {

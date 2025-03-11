@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 // Проверка подключения к базе данных
 async function checkDatabaseConnection() {
@@ -45,8 +45,13 @@ async function checkDatabaseConnection() {
   }
 }
 
-app.use(cors());
-app.use(express.json());
+// Middleware
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
+}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Публичные маршруты
 app.get('/api/profiles', profileController.getProfiles);
@@ -63,6 +68,7 @@ app.get('/api/admin/profiles', profileController.getProfiles);
 app.post('/api/admin/profiles', profileController.createProfile);
 app.put('/api/admin/profiles/:id', profileController.updateProfile);
 app.delete('/api/admin/profiles/:id', profileController.deleteProfile);
+app.patch('/api/admin/profiles/:id/verify', profileController.verifyProfile);
 app.post('/api/admin/cities', cityController.createCity);
 app.put('/api/admin/cities/:id', cityController.updateCity);
 app.delete('/api/admin/cities/:id', cityController.deleteCity);

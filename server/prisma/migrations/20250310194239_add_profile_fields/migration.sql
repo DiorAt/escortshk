@@ -1,0 +1,18 @@
+-- AlterTable
+ALTER TABLE "Profile" ADD COLUMN     "bikiniZone" TEXT,
+ADD COLUMN     "gender" TEXT NOT NULL DEFAULT 'female',
+ADD COLUMN     "hairColor" TEXT,
+ADD COLUMN     "hasReviews" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "hasVideo" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "inCall" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "is24Hours" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isAlone" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "isNew" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "isNonSmoking" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isWaitingCall" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "nationality" TEXT,
+ADD COLUMN     "orientation" TEXT NOT NULL DEFAULT 'hetero',
+ADD COLUMN     "outCall" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "priceExpress" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "withFriend" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "withFriends" BOOLEAN NOT NULL DEFAULT false;

@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 export const getCities = async (_req: Request, res: Response) => {
   try {
+    console.log('Fetching cities...');
     const cities = await prisma.city.findMany({
       include: {
         _count: {
@@ -13,6 +14,8 @@ export const getCities = async (_req: Request, res: Response) => {
       }
     });
 
+    console.log('Found cities:', cities);
+
     // Преобразуем данные для совместимости с фронтендом
     const formattedCities = cities.map(city => ({
       id: city.id,
@@ -20,6 +23,7 @@ export const getCities = async (_req: Request, res: Response) => {
       profiles: { length: city._count.profiles }
     }));
 
+    console.log('Formatted cities:', formattedCities);
     res.json(formattedCities);
   } catch (error) {
     console.error('Error fetching cities:', error);

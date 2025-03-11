@@ -98,13 +98,126 @@ export const getProfileById = async (req: Request, res: Response) => {
 
 export const createProfile = async (req: Request, res: Response) => {
   try {
+    console.log('Received profile data:', req.body);
+    
+    // Проверяем обязательные поля
+    const requiredFields = [
+      'name',
+      'age',
+      'height',
+      'weight',
+      'breastSize',
+      'phone',
+      'description',
+      'photos',
+      'price1Hour',
+      'price2Hours',
+      'priceNight',
+      'cityId'
+    ];
+
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      console.log('Missing required fields:', missingFields);
+      return res.status(400).json({
+        error: 'Missing required fields',
+        fields: missingFields
+      });
+    }
+
+    interface NumericRange {
+      min: number;
+      max?: number;
+    }
+
+    // Проверяем валидность числовых полей
+    const numericFields: Record<string, NumericRange> = {
+      age: { min: 18, max: 70 },
+      height: { min: 140, max: 195 },
+      weight: { min: 40, max: 110 },
+      breastSize: { min: 1, max: 10 },
+      price1Hour: { min: 0 },
+      price2Hours: { min: 0 },
+      priceNight: { min: 0 },
+      priceExpress: { min: 0 }
+    };
+
+    for (const [field, range] of Object.entries(numericFields)) {
+      const value = Number(req.body[field]);
+      if (isNaN(value) || value < range.min || (range.max !== undefined && value > range.max)) {
+        console.log('Invalid numeric field:', field, 'value:', value, 'range:', range);
+        return res.status(400).json({
+          error: `Invalid value for ${field}`,
+          field,
+          range
+        });
+      }
+    }
+
+    // Создаем профиль с валидными данными
+    const profileData = {
+      name: req.body.name,
+      age: Number(req.body.age),
+      height: Number(req.body.height),
+      weight: Number(req.body.weight),
+      breastSize: Number(req.body.breastSize),
+      phone: req.body.phone,
+      description: req.body.description,
+      photos: req.body.photos,
+      price1Hour: Number(req.body.price1Hour),
+      price2Hours: Number(req.body.price2Hours),
+      priceNight: Number(req.body.priceNight),
+      priceExpress: Number(req.body.priceExpress || 0),
+      cityId: Number(req.body.cityId),
+      district: req.body.district,
+      services: req.body.services || [],
+      
+      // Appearance
+      nationality: req.body.nationality,
+      hairColor: req.body.hairColor,
+      bikiniZone: req.body.bikiniZone,
+      gender: req.body.gender || 'female',
+      orientation: req.body.orientation || 'hetero',
+      
+      // Verification
+      isVerified: req.body.isVerified || false,
+      hasVideo: req.body.hasVideo || false,
+      hasReviews: req.body.hasReviews || false,
+      
+      // Location
+      inCall: req.body.inCall ?? true,
+      outCall: req.body.outCall ?? false,
+      
+      // Additional filters
+      isNonSmoking: req.body.isNonSmoking || false,
+      isNew: req.body.isNew ?? true,
+      isWaitingCall: req.body.isWaitingCall || false,
+      is24Hours: req.body.is24Hours || false,
+      
+      // Neighbors
+      isAlone: req.body.isAlone ?? true,
+      withFriend: req.body.withFriend || false,
+      withFriends: req.body.withFriends || false,
+    };
+
+    console.log('Creating profile with data:', profileData);
+
     const profile = await prisma.profile.create({
-      data: req.body,
+      data: profileData,
+      include: {
+        city: true,
+      },
     });
+
+    console.log('Created profile:', profile);
     res.status(201).json(profile);
   } catch (error) {
     console.error('Error creating profile:', error);
-    res.status(500).json({ error: 'Failed to create profile' });
+    res.status(500).json({
+      error: 'Failed to create profile',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
@@ -132,5 +245,24 @@ export const deleteProfile = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting profile:', error);
     res.status(500).json({ error: 'Failed to delete profile' });
+  }
+};
+
+export const verifyProfile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const profile = await prisma.profile.update({
+      where: { id: Number(id) },
+      data: {
+        isVerified: true,
+      },
+      include: {
+        city: true,
+      },
+    });
+    res.json(profile);
+  } catch (error) {
+    console.error('Error verifying profile:', error);
+    res.status(500).json({ error: 'Failed to verify profile' });
   }
 }; 
